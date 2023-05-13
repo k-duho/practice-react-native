@@ -1,6 +1,6 @@
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, TextInput, ScrollView, Alert } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, TextInput, ScrollView, Alert, ActivityIndicator } from 'react-native';
 import { theme } from './colors.js';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Fontisto } from '@expo/vector-icons';
@@ -31,8 +31,13 @@ export default function App() {
   const loadToDos = async () => {
     try {
       const loadedToDos = await AsyncStorage.getItem(STORAGE_KEY)
-      setTodos(JSON.parse(loadedToDos))
+      if(loadedToDos) {
+        setTodos(JSON.parse(loadedToDos))
+      }
+      setLoading(false)
+
     } catch (error) {
+      console.log("now error is occured in loadToDos")
       console.log(error)
     }
   }
@@ -86,18 +91,26 @@ export default function App() {
           style={styles.textInput}
         />
       </View>
-      <ScrollView>
-        {Object.keys(toDos).map((key) =>
-          toDos[key].working === working ? (
-            <View style={styles.toDo} key={key}>
-              <Text style={styles.toDoText}>{toDos[key].text}</Text>
-              <TouchableOpacity onPress={() => deleteTodo(key)}>
-                <Text><Fontisto name="trash" size={24} color="white" /></Text> 
-              </TouchableOpacity>
-            </View>
-          ) : null
-        )}
-      </ScrollView>
+      {
+        loading ? (
+          <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+            <ActivityIndicator size="large" color="white" />
+          </View>
+        ) : (
+          <ScrollView>
+            {Object.keys(toDos).map((key) =>
+              toDos[key].working === working ? (
+                <View style={styles.toDo} key={key}>
+                  <Text style={styles.toDoText}>{toDos[key].text}</Text>
+                  <TouchableOpacity onPress={() => deleteTodo(key)}>
+                    <Text><Fontisto name="trash" size={24} color="white" /></Text> 
+                  </TouchableOpacity>
+                </View>
+              ) : null
+            )}
+          </ScrollView>
+        )
+      }
     </View>
   );
 }
