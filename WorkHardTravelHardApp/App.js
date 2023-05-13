@@ -5,7 +5,8 @@ import { theme } from './colors.js';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Fontisto } from '@expo/vector-icons';
 
-const STORAGE_KEY = "@toDos"
+const TODO_STORAGE_KEY = "@toDos"
+const LATEST_VIEW_STORAGE_KEY = "@latestView"
 
 export default function App() {
   const [working, setWorking] = useState(true);
@@ -14,30 +15,37 @@ export default function App() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    setInitViewByLatestView();
     loadToDos();
+    
   }, []);
 
-  const travel = () => setWorking(false);
-  const work = () => setWorking(true);
+  const travel = () => {
+    setWorking(false)
+    saveLatestView("travel")
+  };
+  const work = () => {
+    setWorking(true)
+    saveLatestView("work")
+  };
   const onChangeText = (payload) => setText(payload)
   const saveToDos = async (toSave) => {
     try {
       const jsonValue = JSON.stringify(toSave)
-      await AsyncStorage.setItem(STORAGE_KEY, jsonValue)
+      await AsyncStorage.setItem(TODO_STORAGE_KEY, jsonValue)
     } catch (error) {
       console.log(error)
     }
   }
   const loadToDos = async () => {
     try {
-      const loadedToDos = await AsyncStorage.getItem(STORAGE_KEY)
+      const loadedToDos = await AsyncStorage.getItem(TODO_STORAGE_KEY)
       if(loadedToDos) {
         setTodos(JSON.parse(loadedToDos))
       }
       setLoading(false)
 
     } catch (error) {
-      console.log("now error is occured in loadToDos")
       console.log(error)
     }
   }
@@ -69,6 +77,23 @@ export default function App() {
       ]
     )
     return;
+  };
+  const saveLatestView = async (view) => {
+    try {
+      await AsyncStorage.setItem(LATEST_VIEW_STORAGE_KEY, view)
+    } catch (error) {
+      console.log(error)
+    }
+  };
+
+  const setInitViewByLatestView = async () => {
+    const latestView = await AsyncStorage.getItem(LATEST_VIEW_STORAGE_KEY)
+
+    if(latestView === "work") {
+      setWorking(true)
+    } else if(latestView === "travel") {
+      setWorking(false)
+    }
   }
 
   return (
